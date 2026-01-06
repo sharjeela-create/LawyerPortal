@@ -51,11 +51,11 @@ const steps = [{
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0f0f10] text-white">
-    <div class="relative isolate overflow-hidden bg-gradient-to-b from-[#131313] via-[#111010] to-[#0f0f10]">
+  <div class="min-h-screen bg-[var(--ap-bg)] text-white">
+    <div class="relative isolate overflow-hidden bg-gradient-to-b from-[var(--ap-surface)] via-[var(--ap-surface-soft)] to-[var(--ap-bg)]">
       <div class="absolute inset-0 pointer-events-none">
-        <div class="absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#AE4010]/40 blur-[120px]" />
-        <div class="absolute top-20 right-12 h-48 w-48 rounded-full bg-[#f7c480]/30 blur-[90px]" />
+        <div class="absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[var(--ap-accent)]/40 blur-[120px]" />
+        <div class="absolute top-20 right-12 h-48 w-48 rounded-full bg-[var(--ap-amber)]/30 blur-[90px]" />
       </div>
 
       <header class="flex w-full items-center justify-between px-6 py-6 lg:px-10">
@@ -93,7 +93,8 @@ const steps = [{
             <div class="flex flex-col gap-3 sm:flex-row">
               <RouterLink
                 to="/get-started"
-                class="flex-1 rounded-xl bg-[#AE4010] px-5 py-3 text-center text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#AE4010]/40 transition hover:translate-y-0.5"
+                class="flex-1 rounded-xl bg-[var(--ap-accent)] px-5 py-3 text-center text-sm font-semibold uppercase tracking-wide text-white shadow-lg transition hover:translate-y-0.5"
+                style="box-shadow: 0 15px 30px var(--ap-accent-shadow);"
               >
                 Get started
               </RouterLink>
@@ -148,7 +149,7 @@ const steps = [{
               <p class="text-xs uppercase tracking-[0.4em] text-white/50">Modules</p>
               <h2 class="mt-1 text-3xl font-semibold text-white">One surface for every MVA milestone.</h2>
             </div>
-            <RouterLink to="/dashboard" class="text-sm font-semibold text-[#f9d7b1] hover:text-white">
+            <RouterLink to="/dashboard" class="text-sm font-semibold text-[var(--ap-highlight)] hover:text-white">
               See dashboard view →
             </RouterLink>
           </div>
@@ -191,7 +192,7 @@ const steps = [{
               </div>
             </div>
           </div>
-          <div class="flex flex-col justify-between rounded-3xl border border-white/10 bg-gradient-to-b from-[#AE4010] to-[#7c2c0a] p-6">
+          <div class="flex flex-col justify-between rounded-3xl border border-white/10 bg-gradient-to-b from-[var(--ap-accent)] to-[var(--ap-accent-dark)] p-6">
             <div>
               <p class="text-xs uppercase tracking-[0.4em] text-white/60">Impact</p>
               <h3 class="mt-2 text-3xl font-semibold text-white">Operational clarity from day one.</h3>
@@ -215,13 +216,13 @@ const steps = [{
           <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <RouterLink
               to="/dashboard"
-              class="rounded-full bg-white px-6 py-3 text-sm font-semibold uppercase tracking-wide text-[#141010]"
+              class="rounded-full bg-white px-5 py-2 text-sm font-semibold uppercase tracking-wide text-[var(--ap-text-dark)]"
             >
               Browse the dashboard
             </RouterLink>
             <RouterLink
               to="/login"
-              class="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white/80"
+              class="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold uppercase tracking-wide text-white/80"
             >
               Access your workspace
             </RouterLink>

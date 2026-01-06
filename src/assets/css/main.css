@@ -16,6 +16,34 @@
   --color-green-900: oklch(17.276% 0.02184 161.78);
 }
 
+:root {
+  --ap-bg: #0f0f10;
+  --ap-surface: #131313;
+  --ap-surface-soft: #111010;
+  --ap-panel: #151515;
+  --ap-panel-light: rgba(255, 255, 255, 0.05);
+  --ap-highlight: #f9d7b1;
+  --ap-amber: #f7c480;
+  --ap-amber-soft: rgba(247, 196, 128, 0.3);
+  --ap-accent: #ae4010;
+  --ap-accent-dark: #7c2c0a;
+  --ap-accent-shadow: rgba(174, 64, 16, 0.4);
+  --ap-accent-soft: rgba(174, 64, 16, 0.15);
+  --ap-accent-border: rgba(174, 64, 16, 0.6);
+  --ap-border: rgba(255, 255, 255, 0.15);
+  --ap-border-strong: rgba(255, 255, 255, 0.4);
+  --ap-text-dark: #141010;
+
+  --ui-color-primary-400: var(--ap-accent);
+  --ui-color-primary-500: var(--ap-accent);
+  --ui-color-primary-600: var(--ap-accent-dark);
+  --ui-color-primary-700: var(--ap-accent-dark);
+}
+
 .dark {
   --ui-primary: var(--ui-color-primary-500);
+  --ui-bg: var(--ap-bg);
+  --ui-bg-elevated: var(--ap-surface);
+  --ui-bg-muted: var(--ap-surface-soft);
+  --ui-border: var(--ap-border);
 }

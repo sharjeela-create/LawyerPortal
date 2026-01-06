@@ -128,11 +128,11 @@ const reset = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0f0f10] text-white">
-    <div class="relative isolate overflow-hidden bg-gradient-to-b from-[#131313] via-[#111010] to-[#0f0f10]">
+  <div class="min-h-screen bg-[var(--ap-bg)] text-white">
+    <div class="relative isolate overflow-hidden bg-gradient-to-b from-[var(--ap-surface)] via-[var(--ap-surface-soft)] to-[var(--ap-bg)]">
       <div class="absolute inset-0 pointer-events-none">
-        <div class="absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#AE4010]/40 blur-[120px]" />
-        <div class="absolute top-16 right-8 h-56 w-56 rounded-full bg-[#f7c480]/25 blur-[110px]" />
+        <div class="absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[var(--ap-accent)]/40 blur-[120px]" />
+        <div class="absolute top-16 right-8 h-56 w-56 rounded-full bg-[var(--ap-amber-soft)] blur-[110px]" />
       </div>
 
       <header class="flex w-full items-center justify-between px-6 py-6 lg:px-10">
@@ -180,21 +180,21 @@ const reset = () => {
               <h2 class="text-lg font-semibold text-white">Accident Payments is built for injury law workflows</h2>
               <div class="mt-4 grid gap-3">
                 <div class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div class="mt-1 size-2 rounded-full bg-[#f9d7b1]" />
+                  <div class="mt-1 size-2 rounded-full bg-[var(--ap-highlight)]" />
                   <div>
                     <p class="text-sm font-semibold text-white">Keep every matter audit-ready</p>
                     <p class="mt-1 text-sm text-white/70">Traceable intake, document trails, and structured client updates.</p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div class="mt-1 size-2 rounded-full bg-[#f9d7b1]" />
+                  <div class="mt-1 size-2 rounded-full bg-[var(--ap-highlight)]" />
                   <div>
                     <p class="text-sm font-semibold text-white">Standardize your MVA playbook</p>
                     <p class="mt-1 text-sm text-white/70">Retainer, profiling, and onboarding checklists tuned to injury cases.</p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div class="mt-1 size-2 rounded-full bg-[#f9d7b1]" />
+                  <div class="mt-1 size-2 rounded-full bg-[var(--ap-highlight)]" />
                   <div>
                     <p class="text-sm font-semibold text-white">Collaborate without email threads</p>
                     <p class="mt-1 text-sm text-white/70">Role-based access for counsel, staff, and external partners.</p>
@@ -249,7 +249,8 @@ const reset = () => {
                 </RouterLink>
                 <button
                   type="button"
-                  class="flex-1 rounded-2xl bg-[#AE4010] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#AE4010]/40"
+                  class="flex-1 rounded-2xl bg-[var(--ap-accent)] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg"
+                  style="box-shadow: 0 12px 24px var(--ap-accent-shadow);"
                   @click="reset"
                 >
                   Submit another
@@ -309,7 +310,7 @@ const reset = () => {
                     v-model="form.state"
                     class="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-white focus:border-white/40 focus:outline-none"
                   >
-                    <option v-for="st in states" :key="st" :value="st" class="bg-[#0f0f10]">
+                    <option v-for="st in states" :key="st" :value="st" class="bg-[var(--ap-bg)]">
                       {{ st }}
                     </option>
                   </select>
@@ -329,14 +330,14 @@ const reset = () => {
                       type="button"
                       class="flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition"
                       :class="form.injuryCaseTypes.includes(option.value)
-                        ? 'border-[#AE4010]/60 bg-[#AE4010]/15 text-white'
+                        ? 'border-[color:var(--ap-accent-border)] bg-[color:var(--ap-accent-soft)] text-white'
                         : 'border-white/10 bg-white/5 text-white/80 hover:border-white/25'"
                       @click="toggleInjuryType(option.value)"
                     >
                       <span class="font-medium">{{ option.label }}</span>
                       <span
                         class="size-2 rounded-full"
-                        :class="form.injuryCaseTypes.includes(option.value) ? 'bg-[#f9d7b1]' : 'bg-white/20'"
+                        :class="form.injuryCaseTypes.includes(option.value) ? 'bg-[var(--ap-highlight)]' : 'bg-white/20'"
                       />
                     </button>
                   </div>
@@ -350,7 +351,8 @@ const reset = () => {
 
                 <button
                   type="submit"
-                  class="w-full rounded-2xl bg-[#AE4010] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#AE4010]/40 disabled:cursor-not-allowed disabled:opacity-70"
+                  class="w-full rounded-2xl bg-[var(--ap-accent)] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
+                  style="box-shadow: 0 12px 24px var(--ap-accent-shadow);"
                   :disabled="isSubmitting"
                 >
                   {{ isSubmitting ? 'Submitting…' : 'Get started' }}

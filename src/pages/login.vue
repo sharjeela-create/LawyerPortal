@@ -33,9 +33,9 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0f0f10] text-white">
+  <div class="min-h-screen bg-[var(--ap-bg)] text-white">
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-10 lg:flex-row lg:items-stretch lg:gap-20 lg:px-10">
-      <section class="flex flex-1 flex-col justify-between rounded-[32px] border border-white/10 bg-gradient-to-b from-[#151515] to-[#0f0f10] p-8 shadow-2xl shadow-black/50">
+      <section class="flex flex-1 flex-col justify-between rounded-[32px] border border-white/10 bg-gradient-to-b from-[var(--ap-panel)] to-[var(--ap-bg)] p-8 shadow-2xl shadow-black/50">
         <div>
           <p class="text-xs uppercase tracking-[0.4em] text-white/60">Lawyer Portal</p>
           <h1 class="mt-4 text-4xl font-semibold leading-tight text-white">Secure entry for your MVA workspace.</h1>
@@ -93,7 +93,8 @@ const handleSubmit = async () => {
 
             <button
               type="submit"
-              class="w-full rounded-2xl bg-[#AE4010] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#AE4010]/40"
+              class="w-full rounded-2xl bg-[var(--ap-accent)] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg"
+              style="box-shadow: 0 12px 24px var(--ap-accent-shadow);"
               :disabled="isBusy"
             >
               {{ isBusy ? 'Signing in…' : 'Continue' }}
