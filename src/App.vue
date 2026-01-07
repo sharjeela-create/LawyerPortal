@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStorage } from '@vueuse/core'
 import type { NavigationMenuItem } from '@nuxt/ui'
 
+import { useAuth } from './composables/useAuth'
+
 const toast = useToast()
 const route = useRoute()
+const auth = useAuth()
 
 const open = ref(false)
 
-const links = [[{
+onMounted(() => {
+  auth.init().catch(() => {
+  })
+})
+
+const links = computed(() => [[{
   label: 'Dashboard',
   icon: 'i-lucide-house',
   to: '/dashboard',
@@ -31,11 +39,18 @@ const links = [[{
   onSelect: () => {
     open.value = false
   }
-}, {
+}, ...(auth.state.value.profile?.role === 'admin' ? [{
+  label: 'Users',
+  icon: 'i-lucide-users',
+  to: '/users',
+  onSelect: () => {
+    open.value = false
+  }
+}] : []), {
   label: 'Settings',
   to: '/settings',
   icon: 'i-lucide-settings',
-  defaultOpen: true,
+  defaultOpen: false,
   type: 'trigger',
   children: [{
     label: 'General',
@@ -45,52 +60,35 @@ const links = [[{
       open.value = false
     }
   }, {
-    label: 'Members',
-    to: '/settings/members',
+    label: 'Attorney Profile',
+    to: '/settings/attorney-profile',
+    exact: true,
     onSelect: () => {
       open.value = false
     }
   }, {
-    label: 'Notifications',
-    to: '/settings/notifications',
+    label: 'Expertise & Jurisdiction',
+    to: '/settings/expertise',
+    exact: true,
     onSelect: () => {
       open.value = false
     }
   }, {
-    label: 'Security',
-    to: '/settings/security',
+    label: 'Capacity & Performance',
+    to: '/settings/capacity',
+    exact: true,
     onSelect: () => {
       open.value = false
     }
   }]
-}], [{
-  label: 'Feedback',
-  icon: 'i-lucide-message-circle',
-  to: 'https://github.com/nuxt-ui-templates/dashboard-vue',
-  target: '_blank'
-}, {
-  label: 'Help & Support',
-  icon: 'i-lucide-info',
-  to: 'https://github.com/nuxt/ui',
-  target: '_blank'
-}]] satisfies NavigationMenuItem[][]
+}]] satisfies NavigationMenuItem[][])
 
 const isPublicPage = computed(() => ['/login', '/', '/get-started'].includes(route.path))
 
 const groups = computed(() => [{
   id: 'links',
   label: 'Go to',
-  items: links.flat()
-}, {
-  id: 'code',
-  label: 'Code',
-  items: [{
-    id: 'source',
-    label: 'View page source',
-    icon: 'simple-icons:github',
-    to: `https://github.com/nuxt-ui-templates/dashboard-vue/blob/main/src/pages${route.path === '/' ? '/index' : route.path}.vue`,
-    target: '_blank'
-  }]
+  items: links.value.flat()
 }])
 
 const cookie = useStorage('cookie-consent', 'pending')

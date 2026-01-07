@@ -4,11 +4,21 @@ import type { Session, User } from '@supabase/supabase-js'
 
 import { supabase } from '../lib/supabase'
 
+export type AppRole = 'admin' | 'lawyer' | 'agent'
+
+export type AppUserProfile = {
+  user_id: string
+  email: string
+  display_name: string | null
+  role: AppRole | null
+} | null
+
 type AuthState = {
   ready: boolean
   loading: boolean
   user: User | null
   session: Session | null
+  profile: AppUserProfile
 }
 
 const _useAuth = () => {
@@ -16,8 +26,34 @@ const _useAuth = () => {
     ready: false,
     loading: true,
     user: null,
-    session: null
+    session: null,
+    profile: null
   })
+
+  const loadProfile = async () => {
+    if (!state.value.user) {
+      state.value.profile = null
+      console.info('[auth] no user found, clearing profile')
+      return
+    }
+
+    console.info('[auth] loading profile for user', state.value.user.id)
+
+    const { data, error } = await supabase
+      .from('app_users')
+      .select('user_id,email,display_name,role')
+      .eq('user_id', state.value.user.id)
+      .maybeSingle()
+
+    if (error) {
+      console.warn('[auth] failed to load profile', error.message)
+      state.value.profile = null
+      return
+    }
+
+    state.value.profile = (data as AppUserProfile) ?? null
+    console.info('[auth] profile loaded', state.value.profile)
+  }
 
   const init = async () => {
     if (state.value.ready) return
@@ -28,12 +64,16 @@ const _useAuth = () => {
 
     state.value.session = data.session
     state.value.user = data.session?.user ?? null
+    await loadProfile()
     state.value.ready = true
     state.value.loading = false
 
     supabase.auth.onAuthStateChange((_event, session) => {
       state.value.session = session
       state.value.user = session?.user ?? null
+      loadProfile().catch(() => {
+        state.value.profile = null
+      })
       state.value.ready = true
       state.value.loading = false
     })
@@ -52,6 +92,7 @@ const _useAuth = () => {
 
     state.value.session = data.session
     state.value.user = data.user
+    await loadProfile()
     state.value.ready = true
   }
 
@@ -62,11 +103,13 @@ const _useAuth = () => {
     if (error) throw error
     state.value.session = null
     state.value.user = null
+    state.value.profile = null
   }
 
   return {
     state: readonly(state),
     init,
+    refreshProfile: loadProfile,
     signInWithPassword,
     signOut
   }

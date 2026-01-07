@@ -1,50 +1,90 @@
 <script setup lang="ts">
 import * as z from 'zod'
-import { reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 
-const fileRef = ref<HTMLInputElement>()
+import { useAuth } from '../../composables/useAuth'
+import { supabase } from '../../lib/supabase'
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Too short'),
-  email: z.string().email('Invalid email'),
-  username: z.string().min(2, 'Too short'),
-  avatar: z.string().optional(),
-  bio: z.string().optional()
+  email: z.string().email('Invalid email')
 })
 
 type ProfileSchema = z.output<typeof profileSchema>
 
+const auth = useAuth()
+const saving = ref(false)
+const isEditing = ref(false)
+
 const profile = reactive<Partial<ProfileSchema>>({
-  name: 'Benjamin Canac',
-  email: 'ben@nuxtlabs.com',
-  username: 'benjamincanac',
-  avatar: undefined,
-  bio: undefined
+  name: '',
+  email: ''
 })
+
+const disabled = computed(() => !isEditing.value)
+
+const hydrateFromAuth = () => {
+  const p = auth.state.value.profile
+  profile.name = p?.display_name ?? ''
+  profile.email = p?.email ?? auth.state.value.user?.email ?? ''
+}
+
+onMounted(async () => {
+  await auth.init()
+  hydrateFromAuth()
+})
+
+watch(
+  () => auth.state.value.profile,
+  () => {
+    hydrateFromAuth()
+  }
+)
+
 const toast = useToast()
 async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
-  toast.add({
-    title: 'Success',
-    description: 'Your settings have been updated.',
-    icon: 'i-lucide-check',
-    color: 'success'
-  })
-  console.log(event.data)
-}
+  const token = auth.state.value.session?.access_token ?? ''
+  if (!token) return
 
-function onFileChange(e: Event) {
-  const input = e.target as HTMLInputElement
+  saving.value = true
+  try {
+    const { error } = await supabase
+      .from('app_users')
+      .update({ display_name: event.data.name })
+      .eq('user_id', auth.state.value.user?.id)
 
-  if (!input.files?.length) {
-    return
+    if (error) throw error
+
+    await auth.refreshProfile()
+    toast.add({
+      title: 'Success',
+      description: 'Your settings have been updated.',
+      icon: 'i-lucide-check',
+      color: 'success'
+    })
+
+    isEditing.value = false
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unable to update profile'
+    toast.add({
+      title: 'Error',
+      description: msg,
+      icon: 'i-lucide-x',
+      color: 'error'
+    })
+  } finally {
+    saving.value = false
   }
-
-  profile.avatar = URL.createObjectURL(input.files[0])
 }
 
-function onFileClick() {
-  fileRef.value?.click()
+const startEditing = () => {
+  isEditing.value = true
+}
+
+const cancelEditing = () => {
+  hydrateFromAuth()
+  isEditing.value = false
 }
 </script>
 
@@ -62,13 +102,33 @@ function onFileClick() {
       orientation="horizontal"
       class="mb-4"
     >
-      <UButton
-        form="settings"
-        label="Save changes"
-        color="neutral"
-        type="submit"
-        class="w-fit lg:ms-auto"
-      />
+      <div class="flex items-center gap-2 w-fit lg:ms-auto">
+        <UButton
+          v-if="!isEditing"
+          label="Edit"
+          color="neutral"
+          variant="outline"
+          class="w-fit"
+          @click="startEditing"
+        />
+        <template v-else>
+          <UButton
+            form="settings"
+            label="Save changes"
+            color="neutral"
+            type="submit"
+            :loading="saving"
+            class="w-fit"
+          />
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="ghost"
+            class="w-fit"
+            @click="cancelEditing"
+          />
+        </template>
+      </div>
     </UPageCard>
 
     <UPageCard variant="subtle">
@@ -82,6 +142,7 @@ function onFileClick() {
         <UInput
           v-model="profile.name"
           autocomplete="off"
+          :disabled="disabled"
         />
       </UFormField>
       <USeparator />
@@ -96,62 +157,7 @@ function onFileClick() {
           v-model="profile.email"
           type="email"
           autocomplete="off"
-        />
-      </UFormField>
-      <USeparator />
-      <UFormField
-        name="username"
-        label="Username"
-        description="Your unique username for logging in and your profile URL."
-        required
-        class="flex max-sm:flex-col justify-between items-start gap-4"
-      >
-        <UInput
-          v-model="profile.username"
-          type="username"
-          autocomplete="off"
-        />
-      </UFormField>
-      <USeparator />
-      <UFormField
-        name="avatar"
-        label="Avatar"
-        description="JPG, GIF or PNG. 1MB Max."
-        class="flex max-sm:flex-col justify-between sm:items-center gap-4"
-      >
-        <div class="flex flex-wrap items-center gap-3">
-          <UAvatar
-            :src="profile.avatar"
-            :alt="profile.name"
-            size="lg"
-          />
-          <UButton
-            label="Choose"
-            color="neutral"
-            @click="onFileClick"
-          />
-          <input
-            ref="fileRef"
-            type="file"
-            class="hidden"
-            accept=".jpg, .jpeg, .png, .gif"
-            @change="onFileChange"
-          >
-        </div>
-      </UFormField>
-      <USeparator />
-      <UFormField
-        name="bio"
-        label="Bio"
-        description="Brief description for your profile. URLs are hyperlinked."
-        class="flex max-sm:flex-col justify-between items-start gap-4"
-        :ui="{ container: 'w-full' }"
-      >
-        <UTextarea
-          v-model="profile.bio"
-          :rows="5"
-          autoresize
-          class="w-full"
+          disabled
         />
       </UFormField>
     </UPageCard>

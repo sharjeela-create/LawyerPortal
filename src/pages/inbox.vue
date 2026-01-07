@@ -1,50 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { useFetch, useBreakpoints, breakpointsTailwind } from '@vueuse/core'
-import type { Mail } from '../types'
+import { ref } from 'vue'
 
-const tabItems = [{
-  label: 'All',
-  value: 'all'
-}, {
-  label: 'Unread',
-  value: 'unread'
-}]
-const selectedTab = ref('all')
-
-const { data: mails } = useFetch('https://dashboard-template.nuxt.dev/api/mails', { initialData: [] }).json<Mail[]>()
-
-// Filter mails based on the selected tab
-const filteredMails = computed(() => {
-  if (selectedTab.value === 'unread') {
-    return mails.value?.filter(mail => !!mail.unread) ?? []
-  }
-
-  return mails.value ?? []
-})
-
-const selectedMail = ref<Mail | null>()
-
-const isMailPanelOpen = computed({
-  get() {
-    return !!selectedMail.value
-  },
-  set(value: boolean) {
-    if (!value) {
-      selectedMail.value = null
-    }
-  }
-})
-
-// Reset selected mail if it's not in the filtered mails
-watch(filteredMails, () => {
-  if (!filteredMails.value.find(mail => mail.id === selectedMail.value?.id)) {
-    selectedMail.value = null
-  }
-})
-
-const breakpoints = useBreakpoints(breakpointsTailwind)
-const isMobile = breakpoints.smaller('lg')
+const unreadCount = ref(0)
 </script>
 
 <template>
@@ -60,30 +17,15 @@ const isMobile = breakpoints.smaller('lg')
         <UDashboardSidebarCollapse />
       </template>
       <template #trailing>
-        <UBadge :label="filteredMails.length" variant="subtle" />
-      </template>
-
-      <template #right>
-        <UTabs
-          v-model="selectedTab"
-          :items="tabItems"
-          :content="false"
-          size="xs"
-        />
+        <UBadge :label="unreadCount" variant="subtle" />
       </template>
     </UDashboardNavbar>
 
-    <InboxList v-model="selectedMail" :mails="filteredMails" />
+    <div class="flex flex-1 items-center justify-center p-6">
+      <div class="flex flex-col items-center gap-3 text-center">
+        <UIcon name="i-lucide-inbox" class="size-16 text-dimmed" />
+        <p class="text-sm text-dimmed">Inbox is currently empty.</p>
+      </div>
+    </div>
   </UDashboardPanel>
-
-  <InboxMail v-if="selectedMail" :mail="selectedMail" @close="selectedMail = null" />
-  <div v-else class="hidden lg:flex flex-1 items-center justify-center">
-    <UIcon name="i-lucide-inbox" class="size-32 text-dimmed" />
-  </div>
-
-  <USlideover v-if="isMobile" v-model:open="isMailPanelOpen">
-    <template #content>
-      <InboxMail v-if="selectedMail" :mail="selectedMail" @close="selectedMail = null" />
-    </template>
-  </USlideover>
 </template>
