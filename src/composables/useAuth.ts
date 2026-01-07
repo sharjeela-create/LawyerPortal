@@ -11,6 +11,7 @@ export type AppUserProfile = {
   email: string
   display_name: string | null
   role: AppRole | null
+  center_id: string | null
 } | null
 
 type AuthState = {
@@ -41,7 +42,7 @@ const _useAuth = () => {
 
     const { data, error } = await supabase
       .from('app_users')
-      .select('user_id,email,display_name,role')
+      .select('user_id,email,display_name,role,center_id')
       .eq('user_id', state.value.user.id)
       .maybeSingle()
 

@@ -49,30 +49,44 @@ const filteredRows = computed(() => {
 
 const columns: TableColumn<DailyDealFlow>[] = [
   {
-    accessorKey: 'submission_id',
-    header: 'Submission ID'
+    accessorKey: 'date',
+    header: 'Date'
   },
   {
     accessorKey: 'insured_name',
-    header: 'Insured'
+    header: 'Customer Name'
   },
   {
     accessorKey: 'client_phone_number',
-    header: 'Phone'
-  },
-  {
-    accessorKey: 'lead_vendor',
-    header: 'Vendor'
+    header: 'Phone Number'
   },
   {
     accessorKey: 'status',
     header: 'Status'
   },
   {
-    accessorKey: 'date',
-    header: 'Date'
+    accessorKey: 'agent',
+    header: 'Assigned Lawyer'
+  },
+  {
+    accessorKey: 'actions',
+    header: 'Actions'
   }
 ]
+
+const formatDate = (value: string | null) => {
+  if (!value) return '—'
+  // Prefer YYYY-MM-DD display like the UI screenshot
+  return value.length >= 10 ? value.slice(0, 10) : value
+}
+
+const statusColor = (value: string | null) => {
+  const normalized = (value ?? '').toLowerCase()
+  if (normalized.includes('pending')) return 'warning' as const
+  if (normalized.includes('approved') || normalized.includes('paid') || normalized.includes('complete')) return 'success' as const
+  if (normalized.includes('rejected') || normalized.includes('failed') || normalized.includes('cancel')) return 'error' as const
+  return 'neutral' as const
+}
 
 const load = async () => {
   loading.value = true
@@ -165,7 +179,7 @@ const openRow = (row: DailyDealFlow) => {
           v-model="query"
           class="max-w-md"
           icon="i-lucide-search"
-          placeholder="Search by submission, name, phone, vendor..."
+          placeholder="Search by name, phone..."
         />
 
         <UBadge
@@ -183,55 +197,60 @@ const openRow = (row: DailyDealFlow) => {
         :description="error"
       />
 
-      <UTable
-        class="mt-4"
-        :loading="loading"
-        :data="filteredRows"
-        :columns="columns"
-        :ui="{
-          base: 'table-fixed border-separate border-spacing-0',
-          thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
-          tbody: '[&>tr]:last:[&>td]:border-b-0',
-          th: 'first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
-          td: 'border-b border-default'
-        }"
-      >
-        <template #submission_id-cell="{ row }">
-          <button type="button" class="block w-full text-left font-medium text-highlighted" @click="openRow(row.original)">
-            {{ row.original.submission_id }}
-          </button>
-        </template>
+      <UPageCard variant="subtle" class="mt-4">
+        <UTable
+          class="mt-0"
+          :loading="loading"
+          :data="filteredRows"
+          :columns="columns"
+          :ui="{
+            base: 'table-fixed border-separate border-spacing-0',
+            thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
+            tbody: '[&>tr]:last:[&>td]:border-b-0',
+            th: 'first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
+            td: 'border-b border-default'
+          }"
+        >
+          <template #date-cell="{ row }">
+            <span class="text-sm text-white/80">{{ formatDate(row.original.date) }}</span>
+          </template>
 
-        <template #insured_name-cell="{ row }">
-          <button type="button" class="block w-full text-left" @click="openRow(row.original)">
-            {{ row.original.insured_name ?? '—' }}
-          </button>
-        </template>
+          <template #insured_name-cell="{ row }">
+            <span class="text-sm text-white/90">{{ row.original.insured_name ?? '—' }}</span>
+          </template>
 
-        <template #client_phone_number-cell="{ row }">
-          <button type="button" class="block w-full text-left" @click="openRow(row.original)">
-            {{ row.original.client_phone_number ?? '—' }}
-          </button>
-        </template>
+          <template #client_phone_number-cell="{ row }">
+            <span class="text-sm text-white/80">{{ row.original.client_phone_number ?? '—' }}</span>
+          </template>
 
-        <template #lead_vendor-cell="{ row }">
-          <button type="button" class="block w-full text-left" @click="openRow(row.original)">
-            {{ row.original.lead_vendor ?? '—' }}
-          </button>
-        </template>
+          <template #status-cell="{ row }">
+            <UBadge
+              variant="subtle"
+              :color="statusColor(row.original.status)"
+              class="text-xs"
+            >
+              {{ row.original.status ?? '—' }}
+            </UBadge>
+          </template>
 
-        <template #status-cell="{ row }">
-          <button type="button" class="block w-full text-left" @click="openRow(row.original)">
-            {{ row.original.status ?? '—' }}
-          </button>
-        </template>
+          <template #agent-cell="{ row }">
+            <span class="text-sm text-white/80">{{ row.original.agent ?? '—' }}</span>
+          </template>
 
-        <template #date-cell="{ row }">
-          <button type="button" class="block w-full text-left" @click="openRow(row.original)">
-            {{ row.original.date ?? '—' }}
-          </button>
-        </template>
-      </UTable>
+          <template #actions-cell="{ row }">
+            <div class="flex justify-end">
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="outline"
+                icon="i-lucide-eye"
+                label="View"
+                @click="openRow(row.original)"
+              />
+            </div>
+          </template>
+        </UTable>
+      </UPageCard>
     </template>
   </UDashboardPanel>
 </template>
