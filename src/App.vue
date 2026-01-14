@@ -33,9 +33,30 @@ const links = computed(() => [[{
     open.value = false
   }
 }, {
+  label: 'Intake Map',
+  icon: 'i-lucide-map',
+  to: '/intake-map',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
   label: 'Retainers',
   icon: 'i-lucide-briefcase',
   to: '/retainers',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
+  label: 'Fulfillment',
+  icon: 'i-lucide-package',
+  to: '/fulfillment',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
+  label: 'Invoicing',
+  icon: 'i-lucide-receipt',
+  to: '/invoicing',
   onSelect: () => {
     open.value = false
   }

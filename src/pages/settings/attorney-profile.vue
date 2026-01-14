@@ -395,8 +395,8 @@ onBeforeRouteLeave((to, from, next) => {
 
         <UFormField
           name="officeAddress"
-          label="Office Address"
-          description="Your primary office location"
+          label="Primary Physical Location"
+          description="Your main office address where you practice law"
           required
           class="flex max-sm:flex-col justify-between items-start gap-4"
         >

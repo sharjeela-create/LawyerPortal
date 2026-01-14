@@ -10,7 +10,7 @@ import UnsavedChangesModal from '../../components/settings/UnsavedChangesModal.v
 
 const expertiseSchema = z.object({
   licensedStates: z.array(z.string()).min(1, 'At least one state is required'),
-  primaryCity: z.string().min(2, 'Primary city is required'),
+  primaryCity: z.string().min(2, 'Primary physical location is required'),
   countiesCovered: z.array(z.string()).optional(),
   federalCourts: z.string().optional(),
   primaryPracticeFocus: z.string().min(1, 'Practice focus is required'),
@@ -238,14 +238,14 @@ onBeforeRouteLeave((to, from, next) => {
 
         <UFormField
           name="primaryCity"
-          label="Primary City/Metro Area"
-          description="Your main practice location"
+          label="Primary Physical Location"
+          description="Your main office location"
           required
           class="flex max-sm:flex-col justify-between items-start gap-4"
         >
           <UInput
             v-model="profile.primaryCity"
-            placeholder="Los Angeles"
+            placeholder="Los Angeles, CA"
             autocomplete="off"
             :disabled="disabled"
           />

@@ -22,6 +22,8 @@ type DailyDealFlow = {
 const router = useRouter()
 const auth = useAuth()
 
+const isSuperAdmin = computed(() => auth.state.value.profile?.role === 'super_admin')
+
 const loading = ref(false)
 const error = ref<string | null>(null)
 const query = ref('')
@@ -74,32 +76,42 @@ const normalizeFilterValue = (value: string | null | undefined) => {
   return v.length ? v : '—'
 }
 
-const columns: TableColumn<DailyDealFlow>[] = [
-  {
-    accessorKey: 'date',
-    header: 'Date'
-  },
-  {
-    accessorKey: 'insured_name',
-    header: 'Customer Name'
-  },
-  {
-    accessorKey: 'client_phone_number',
-    header: 'Phone Number'
-  },
-  {
-    accessorKey: 'lead_vendor',
-    header: 'Lead vendor'
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status'
-  },
-  {
-    accessorKey: 'actions',
-    header: 'Actions'
+const columns = computed(() => {
+  const cols: TableColumn<DailyDealFlow>[] = [
+    {
+      accessorKey: 'date',
+      header: 'Date'
+    },
+    {
+      accessorKey: 'insured_name',
+      header: 'Customer Name'
+    },
+    {
+      accessorKey: 'client_phone_number',
+      header: 'Phone Number'
+    }
+  ]
+
+  if (isSuperAdmin.value) {
+    cols.push({
+      accessorKey: 'lead_vendor',
+      header: 'Lead vendor'
+    })
   }
-]
+
+  cols.push(
+    {
+      accessorKey: 'status',
+      header: 'Status'
+    },
+    {
+      accessorKey: 'actions',
+      header: 'Actions'
+    }
+  )
+
+  return cols
+})
 
 const formatDate = (value: string | null) => {
   if (!value) return '—'
@@ -163,7 +175,7 @@ const load = async () => {
       }
     }
 
-    if (leadVendorFilter.value !== 'All') {
+    if (isSuperAdmin.value && leadVendorFilter.value !== 'All') {
       const v = normalizeFilterValue(leadVendorFilter.value)
       queryBuilder = v === '—'
         ? queryBuilder.is('lead_vendor', null)
@@ -211,6 +223,11 @@ const loadFilterOptions = async () => {
     await auth.init()
     const userId = auth.state.value.user?.id ?? null
     const userRole = auth.state.value.profile?.role ?? null
+
+    if (userRole !== 'super_admin') {
+      availableLeadVendors.value = []
+      leadVendorFilter.value = 'All'
+    }
 
     let qb = supabase
       .from('daily_deal_flow')
@@ -263,7 +280,9 @@ const loadFilterOptions = async () => {
     vendors.sort((a, b) => a.localeCompare(b))
     statuses.sort((a, b) => a.localeCompare(b))
 
-    availableLeadVendors.value = vendors
+    if (userRole === 'super_admin') {
+      availableLeadVendors.value = vendors
+    }
     availableStatuses.value = statuses
   } catch {
   }
@@ -295,6 +314,47 @@ watch(pageCount, () => {
 const openRow = (row: DailyDealFlow) => {
   router.push(`/retainers/${row.id}`)
 }
+
+const dropOpen = ref(false)
+const dropTarget = ref<DailyDealFlow | null>(null)
+const dropBusy = ref(false)
+
+const openDrop = (row: DailyDealFlow) => {
+  dropTarget.value = row
+  dropOpen.value = true
+}
+
+const handleDropOpenUpdate = (v: boolean) => {
+  dropOpen.value = v
+  if (!v) {
+    dropTarget.value = null
+    dropBusy.value = false
+  }
+}
+
+const confirmDrop = async () => {
+  const target = dropTarget.value
+  if (!target?.id) return
+
+  dropBusy.value = true
+  try {
+    const { error: updateErr } = await supabase
+      .from('daily_deal_flow')
+      .update({ status: 'Dropped' })
+      .eq('id', target.id)
+
+    if (updateErr) throw updateErr
+
+    await load()
+    dropOpen.value = false
+    dropTarget.value = null
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Failed to drop retainer'
+    error.value = msg
+  } finally {
+    dropBusy.value = false
+  }
+}
 </script>
 
 <template>
@@ -321,6 +381,47 @@ const openRow = (row: DailyDealFlow) => {
 
     <template #body>
       <div class="flex h-full min-h-0 flex-col">
+      <UModal
+        :open="dropOpen"
+        title="Drop retainer"
+        :dismissible="false"
+        @update:open="handleDropOpenUpdate"
+      >
+        <template #body="{ close }">
+          <div class="space-y-4">
+            <div class="text-sm text-muted">
+              Are you sure you want to drop this retainer/client? This action will mark the retainer as dropped.
+            </div>
+
+            <div class="rounded-md border border-default bg-elevated/30 p-3 text-sm">
+              <div class="font-semibold">{{ dropTarget?.insured_name ?? '—' }}</div>
+              <div class="mt-1 text-xs text-muted">
+                {{ dropTarget?.client_phone_number ?? '—' }} · {{ dropTarget?.submission_id ?? '—' }}
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2">
+              <UButton
+                color="neutral"
+                variant="outline"
+                :disabled="dropBusy"
+                @click="() => { close() }"
+              >
+                Cancel
+              </UButton>
+              <UButton
+                color="error"
+                variant="solid"
+                :loading="dropBusy"
+                @click="confirmDrop"
+              >
+                Drop retainer
+              </UButton>
+            </div>
+          </div>
+        </template>
+      </UModal>
+
       <div class="flex w-full flex-wrap items-center justify-between gap-3">
         <div class="flex flex-1 flex-wrap items-center gap-3">
           <UInput
@@ -331,6 +432,7 @@ const openRow = (row: DailyDealFlow) => {
           />
 
           <USelect
+            v-if="isSuperAdmin"
             v-model="leadVendorFilter"
             :items="leadVendorOptions"
             class="w-56"
@@ -400,7 +502,7 @@ const openRow = (row: DailyDealFlow) => {
           </template>
 
           <template #actions-cell="{ row }">
-            <div class="flex justify-end">
+            <div class="flex justify-end gap-2">
               <UButton
                 size="xs"
                 color="neutral"
@@ -408,6 +510,15 @@ const openRow = (row: DailyDealFlow) => {
                 icon="i-lucide-eye"
                 label="View"
                 @click="openRow(row.original)"
+              />
+
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="outline"
+                icon="i-lucide-ban"
+                label="Drop"
+                @click="openDrop(row.original)"
               />
             </div>
           </template>
